@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML練習サイト</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <h1>HTML練習サイト</h1>
+  <p class="subtitle">問題を選んで、HTMLタグを書いて「実行」すると結果が確認できます</p>
+</header>
+
+<div class="app-layout">
+
+  <aside class="sidebar" id="sidebar">
+    <!-- 問題一覧はscript.jsが自動生成 -->
+  </aside>
+
+  <main class="main-area">
+
+    <section class="problem-panel">
+      <h2 id="problem-title">問題を選んでください</h2>
+      <div id="problem-description" class="problem-description">
+        左の一覧から練習したい問題をクリックしてください。
+      </div>
+      <div class="answer-section">
+        <button id="answer-toggle-btn" class="btn">💡 解答を見る</button>
+        <pre id="answer-code" class="answer-code hidden"><code id="answer-code-content"></code></pre>
+      </div>
+    </section>
+
+    <section class="work-panel">
+      <div class="work-column">
+        <div class="work-column-header">
+          <span>HTMLを入力</span>
+          <div class="button-group">
+            <button id="run-btn" class="btn btn-primary">▶ 実行</button>
+            <button id="save-btn" class="btn">💾 保存</button>
+            <button id="reset-btn" class="btn">リセット</button>
+          </div>
+        </div>
+        <div class="editor-wrap">
+          <pre id="code-highlight" class="code-highlight" aria-hidden="true"><code id="code-highlight-code"></code></pre>
+          <textarea id="code-input" class="code-editor" spellcheck="false" placeholder="ここにHTMLタグを書いてください"></textarea>
+        </div>
+      </div>
+
+      <div class="work-column">
+        <div class="work-column-header">
+          <span>実行結果（ブラウザ表示）</span>
+        </div>
+        <iframe id="preview" title="実行結果"></iframe>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="problems.js"></script>
+<script src="highlight.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
