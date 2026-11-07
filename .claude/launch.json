@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "html-rensyu",
-      "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8420"],
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vercel", "dev", "--listen", "8420"],
       "port": 8420
     }
   ]
