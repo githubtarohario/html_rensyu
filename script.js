@@ -106,7 +106,12 @@
   // --- 正解マーカー（サイドバー） ---
 
   function findSidebarItem(problemId) {
-    return sidebar.querySelector('.problem-item[data-problem-id="' + problemId + '"]');
+    // problemIdはサーバー（/api/me）から返る値であり、既知のID一覧と照合されていない
+    // （api/score.jsは任意の文字列を受け入れる設計）。セレクタ文字列として組み立てると
+    // "などを含む値でSyntaxErrorになるため、dataset比較で探す。
+    return Array.prototype.find.call(sidebar.querySelectorAll(".problem-item"), function (el) {
+      return el.dataset.problemId === problemId;
+    });
   }
 
   function markSolved(problemId) {
