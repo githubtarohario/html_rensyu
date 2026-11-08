@@ -18,9 +18,29 @@ async function recordCorrectAnswer(client, nickname, problemId) {
   return { score, newlyCorrect };
 }
 
+// 指定ニックネームの得点と正解済み問題一覧を取得する。
+async function getUserInfo(client, nickname) {
+  const solvedProblems = await client.smembers(userSolvedKey(nickname));
+  return { nickname, score: solvedProblems.length, solvedProblems };
+}
+
+// ランキングをスコア降順、同点はニックネーム昇順（アルファベット順）で返す。
+// Redis側の順序に依存せず、JS側で明示的にソートする。
+async function getLeaderboard(client) {
+  const entries = await client.zrangeDesc(LEADERBOARD_KEY);
+  return entries
+    .map(({ member, score }) => ({ nickname: member, score }))
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.nickname < b.nickname ? -1 : a.nickname > b.nickname ? 1 : 0;
+    });
+}
+
 module.exports = {
   LEADERBOARD_KEY,
   userSolvedKey,
   userMetaKey,
   recordCorrectAnswer,
+  getUserInfo,
+  getLeaderboard,
 };

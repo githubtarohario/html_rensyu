@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { recordCorrectAnswer, userSolvedKey } = require("../api/_lib/store");
+const { recordCorrectAnswer, userSolvedKey, getUserInfo, getLeaderboard } = require("../api/_lib/store");
 
 function createFakeClient() {
   const sets = new Map();
@@ -61,4 +61,47 @@ test("同じニックネームへの別問題の正解が互いの記録を消�
   await recordCorrectAnswer(client, "Taro", "p-basic");
   const solved = client._sets.get(userSolvedKey("Taro"));
   assert.deepEqual([...solved].sort(), ["h1-basic", "p-basic"]);
+});
+
+test("得点のないユーザーは score:0, solvedProblems:[] を返す", async () => {
+  const client = createFakeClient();
+  const info = await getUserInfo(client, "Hanako");
+  assert.deepEqual(info, { nickname: "Hanako", score: 0, solvedProblems: [] });
+});
+
+test("正解済みの問題がsolvedProblemsに含まれる", async () => {
+  const client = createFakeClient();
+  await recordCorrectAnswer(client, "Hanako", "h1-basic");
+  await recordCorrectAnswer(client, "Hanako", "p-basic");
+  const info = await getUserInfo(client, "Hanako");
+  assert.equal(info.score, 2);
+  assert.deepEqual([...info.solvedProblems].sort(), ["h1-basic", "p-basic"]);
+});
+
+test("誰も得点を持たない場合、ランキングは空配列", async () => {
+  const client = createFakeClient();
+  assert.deepEqual(await getLeaderboard(client), []);
+});
+
+test("スコア降順、同点はニックネーム昇順で並ぶ", async () => {
+  const client = createFakeClient();
+  await recordCorrectAnswer(client, "Bob", "h1-basic");
+  await recordCorrectAnswer(client, "Alice", "h1-basic");
+  await recordCorrectAnswer(client, "Alice", "p-basic");
+  const board = await getLeaderboard(client);
+  assert.deepEqual(board, [
+    { nickname: "Alice", score: 2 },
+    { nickname: "Bob", score: 1 },
+  ]);
+});
+
+test("同点はニックネームのアルファベット順でタイブレークする", async () => {
+  const client = createFakeClient();
+  await recordCorrectAnswer(client, "Bob", "h1-basic");
+  await recordCorrectAnswer(client, "Alice", "h1-basic");
+  const board = await getLeaderboard(client);
+  assert.deepEqual(board, [
+    { nickname: "Alice", score: 1 },
+    { nickname: "Bob", score: 1 },
+  ]);
 });
