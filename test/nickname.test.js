@@ -19,3 +19,8 @@ test("20文字ちょうどはそのまま通す", () => {
 test("21文字以上はnullを返す", () => {
   assert.equal(normalizeNickname("a".repeat(21)), null);
 });
+
+test("undefined・nullはnullを返す（文字列化されて通らないこと）", () => {
+  assert.equal(normalizeNickname(undefined), null);
+  assert.equal(normalizeNickname(null), null);
+});
