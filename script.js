@@ -18,7 +18,9 @@
   const loginError = document.getElementById("login-error");
   const currentUser = document.getElementById("current-user");
   const currentUserName = document.getElementById("current-user-name");
+  const currentScore = document.getElementById("current-score");
   const logoutBtn = document.getElementById("logout-btn");
+  const leaderboardList = document.getElementById("leaderboard-list");
 
   let currentProblem = null;
 
@@ -63,6 +65,103 @@
     }
   }
 
+  // --- サーバー連携（fetchラッパー） ---
+  // いずれも通信エラー時はnullを返す。UIはnullの場合そのまま何もしない
+  // （オフライン時でも練習自体は続けられるようにする）。
+
+  async function postScore(nickname, problemId) {
+    try {
+      const res = await fetch("/api/score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nickname: nickname, problemId: problemId }),
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function fetchMe(nickname) {
+    try {
+      const res = await fetch("/api/me?nickname=" + encodeURIComponent(nickname));
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function fetchLeaderboard() {
+    try {
+      const res = await fetch("/api/leaderboard");
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // --- 正解マーカー（サイドバー） ---
+
+  function findSidebarItem(problemId) {
+    return sidebar.querySelector('.problem-item[data-problem-id="' + problemId + '"]');
+  }
+
+  function markSolved(problemId) {
+    const el = findSidebarItem(problemId);
+    if (el) el.classList.add("solved");
+  }
+
+  function markSolvedList(problemIds) {
+    if (!Array.isArray(problemIds)) return;
+    problemIds.forEach(markSolved);
+  }
+
+  function clearAllSolved() {
+    sidebar.querySelectorAll(".problem-item.solved").forEach((el) => {
+      el.classList.remove("solved");
+    });
+  }
+
+  // --- ランキング表示 ---
+
+  function renderLeaderboard(entries) {
+    leaderboardList.innerHTML = "";
+    entries.forEach((entry) => {
+      const li = document.createElement("li");
+      li.className = "leaderboard-item";
+
+      const nameEl = document.createElement("span");
+      nameEl.className = "leaderboard-name";
+      nameEl.appendChild(document.createTextNode(entry.nickname));
+
+      const scoreEl = document.createElement("span");
+      scoreEl.className = "leaderboard-score";
+      scoreEl.appendChild(document.createTextNode(String(entry.score)));
+
+      li.appendChild(nameEl);
+      li.appendChild(scoreEl);
+      leaderboardList.appendChild(li);
+    });
+  }
+
+  async function refreshLeaderboard() {
+    const board = await fetchLeaderboard();
+    if (!board) return;
+    renderLeaderboard(board);
+  }
+
+  // ログイン中のニックネームの得点・正解済み問題をサーバーから復元する
+  async function syncUserState(nickname) {
+    const info = await fetchMe(nickname);
+    if (!info) return;
+    currentScore.textContent = String(info.score);
+    clearAllSolved();
+    markSolvedList(info.solvedProblems);
+  }
+
   function showLoginError(message) {
     loginError.textContent = message;
     loginError.classList.remove("hidden");
@@ -77,14 +176,18 @@
     loginForm.classList.add("hidden");
     currentUser.classList.remove("hidden");
     currentUserName.textContent = nickname;
+    currentScore.textContent = "0";
+    syncUserState(nickname);
   }
 
   function showLoggedOutView() {
     currentUser.classList.add("hidden");
     loginForm.classList.remove("hidden");
     currentUserName.textContent = "";
+    currentScore.textContent = "0";
     nicknameInput.value = "";
     hideLoginError();
+    clearAllSolved();
   }
 
   function loadSavedCode(problem) {
@@ -109,10 +212,24 @@
     codeHighlightCode.innerHTML = highlightHtml(codeInput.value) + "\n";
   }
 
-  function runPreview() {
+  async function runPreview() {
     preview.srcdoc = codeInput.value;
-    if (currentProblem) {
-      saveCode(currentProblem, codeInput.value);
+    if (!currentProblem) return;
+
+    saveCode(currentProblem, codeInput.value);
+
+    const nickname = getSavedNickname();
+    if (
+      nickname &&
+      typeof checkAnswer === "function" &&
+      checkAnswer(currentProblem.id, codeInput.value) === true
+    ) {
+      const result = await postScore(nickname, currentProblem.id);
+      if (result) {
+        currentScore.textContent = String(result.score);
+        markSolved(currentProblem.id);
+        refreshLeaderboard();
+      }
     }
   }
 
@@ -170,6 +287,7 @@
       const itemEl = document.createElement("button");
       itemEl.type = "button";
       itemEl.className = "problem-item";
+      itemEl.dataset.problemId = problem.id;
       itemEl.textContent = problem.title;
       itemEl.addEventListener("click", () => selectProblem(problem, itemEl));
       sidebar.appendChild(itemEl);
@@ -230,6 +348,8 @@
     showLoggedOutView();
   });
 
+  buildSidebar();
+
   const savedNickname = getSavedNickname();
   if (savedNickname) {
     showLoggedInView(savedNickname);
@@ -237,10 +357,10 @@
     showLoggedOutView();
   }
 
-  buildSidebar();
-
   if (PROBLEMS.length > 0) {
     const firstItem = sidebar.querySelector(".problem-item");
     selectProblem(PROBLEMS[0], firstItem);
   }
+
+  refreshLeaderboard();
 })();

@@ -24,6 +24,8 @@
     <div id="current-user" class="current-user hidden">
       <span class="current-user-label">ログイン中:</span>
       <span id="current-user-name" class="current-user-name"></span>
+      <span class="current-score-label">得点:</span>
+      <span id="current-score" class="current-score">0</span>
       <button id="logout-btn" class="btn">ログアウト</button>
     </div>
   </div>
@@ -73,6 +75,13 @@
     </section>
 
   </main>
+
+  <aside class="leaderboard-panel">
+    <h2 class="leaderboard-title">ランキング</h2>
+    <ul id="leaderboard-list" class="leaderboard-list">
+      <!-- ランキングはscript.jsが自動生成 -->
+    </ul>
+  </aside>
 </div>
 
 <script src="problems.js"></script>
