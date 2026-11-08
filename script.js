@@ -13,10 +13,78 @@
   const answerCode = document.getElementById("answer-code");
   const answerCodeContent = document.getElementById("answer-code-content");
 
+  const loginForm = document.getElementById("login-form");
+  const nicknameInput = document.getElementById("nickname-input");
+  const loginError = document.getElementById("login-error");
+  const currentUser = document.getElementById("current-user");
+  const currentUserName = document.getElementById("current-user-name");
+  const logoutBtn = document.getElementById("logout-btn");
+
   let currentProblem = null;
+
+  const NICKNAME_STORAGE_KEY = "html-rensyu:nickname";
+  const NICKNAME_MAX_LENGTH = 20;
 
   function storageKey(problem) {
     return "html-rensyu:" + problem.id;
+  }
+
+  // サーバー側（api/_lib/nickname.js）のnormalizeNicknameと同じルール。
+  // 前後の空白を除去し、空または20文字を超える場合はnullを返す。
+  function normalizeNickname(raw) {
+    if (typeof raw !== "string") return null;
+    const trimmed = raw.trim();
+    if (trimmed === "") return null;
+    if ([...trimmed].length > NICKNAME_MAX_LENGTH) return null;
+    return trimmed;
+  }
+
+  function getSavedNickname() {
+    try {
+      return localStorage.getItem(NICKNAME_STORAGE_KEY);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function saveNickname(name) {
+    try {
+      localStorage.setItem(NICKNAME_STORAGE_KEY, name);
+    } catch (e) {
+      // 保存できない環境（プライベートモード等）では無視する
+    }
+  }
+
+  function clearNickname() {
+    try {
+      localStorage.removeItem(NICKNAME_STORAGE_KEY);
+    } catch (e) {
+      // 削除できない環境（プライベートモード等）では無視する
+    }
+  }
+
+  function showLoginError(message) {
+    loginError.textContent = message;
+    loginError.classList.remove("hidden");
+  }
+
+  function hideLoginError() {
+    loginError.textContent = "";
+    loginError.classList.add("hidden");
+  }
+
+  function showLoggedInView(nickname) {
+    loginForm.classList.add("hidden");
+    currentUser.classList.remove("hidden");
+    currentUserName.textContent = nickname;
+  }
+
+  function showLoggedOutView() {
+    currentUser.classList.add("hidden");
+    loginForm.classList.remove("hidden");
+    currentUserName.textContent = "";
+    nicknameInput.value = "";
+    hideLoginError();
   }
 
   function loadSavedCode(problem) {
@@ -145,6 +213,29 @@
       hideAnswer();
     }
   });
+
+  loginForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const normalized = normalizeNickname(nicknameInput.value);
+    if (normalized === null) {
+      showLoginError("ニックネームは1〜20文字で入力してください。");
+      return;
+    }
+    saveNickname(normalized);
+    showLoggedInView(normalized);
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    clearNickname();
+    showLoggedOutView();
+  });
+
+  const savedNickname = getSavedNickname();
+  if (savedNickname) {
+    showLoggedInView(savedNickname);
+  } else {
+    showLoggedOutView();
+  }
 
   buildSidebar();
 

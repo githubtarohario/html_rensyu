@@ -23,6 +23,10 @@ body {
 }
 
 .app-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
   padding: 16px 24px;
   background: var(--color-panel);
   border-bottom: 1px solid var(--color-border);
@@ -37,6 +41,51 @@ body {
   margin: 4px 0 0;
   color: var(--color-muted);
   font-size: 13px;
+}
+
+.header-login {
+  flex-shrink: 0;
+}
+
+.login-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.nickname-input {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  font-size: 13px;
+  width: 160px;
+}
+
+.login-error {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #c62828;
+  white-space: nowrap;
+}
+
+.current-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.current-user-label {
+  color: var(--color-muted);
+}
+
+.current-user-name {
+  font-weight: bold;
+  color: var(--color-text);
 }
 
 .app-layout {
