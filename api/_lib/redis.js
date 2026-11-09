@@ -36,8 +36,10 @@ function createRedisClient() {
     async get(key) {
       return redis.get(key);
     },
-    async set(key, value) {
-      await redis.set(key, value);
+    // optionsは@upstash/redisのset()にそのまま渡す（例: { nx: true }）。
+    // NX指定時はキーが既に存在すると何もせずnullを返すため、戻り値をそのまま返す。
+    async set(key, value, options) {
+      return redis.set(key, value, options);
     },
   };
 }

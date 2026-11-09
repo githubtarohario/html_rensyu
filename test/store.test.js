@@ -7,6 +7,7 @@ const {
   getLeaderboard,
   getPasswordHash,
   setPasswordHash,
+  setPasswordHashIfAbsent,
 } = require("../api/_lib/store");
 
 function createFakeClient() {
@@ -42,8 +43,14 @@ function createFakeClient() {
     async get(key) {
       return strings.get(key) ?? null;
     },
-    async set(key, value) {
+    async set(key, value, options) {
+      // 実際の@upstash/redisのSET NXを模倣する:
+      // nx指定時、キーが既に存在する場合は何もせずnullを返す。
+      if (options && options.nx && strings.has(key)) {
+        return null;
+      }
       strings.set(key, value);
+      return "OK";
     },
     _sets: sets,
   };
@@ -128,5 +135,21 @@ test("パスワードハッシュが未設定のユーザーはnullを返す", a
 test("setPasswordHashで保存した値がgetPasswordHashで取得できる", async () => {
   const client = createFakeClient();
   await setPasswordHash(client, "Taro", "scrypt$abcd$1234");
+  assert.equal(await getPasswordHash(client, "Taro"), "scrypt$abcd$1234");
+});
+
+test("setPasswordHashIfAbsentは未設定のIDには保存に成功しtrueを返す", async () => {
+  const client = createFakeClient();
+  const didSet = await setPasswordHashIfAbsent(client, "Taro", "scrypt$abcd$1234");
+  assert.equal(didSet, true);
+  assert.equal(await getPasswordHash(client, "Taro"), "scrypt$abcd$1234");
+});
+
+test("setPasswordHashIfAbsentは既に設定済みのIDには何もせずfalseを返す（競合時のフォールバック用）", async () => {
+  const client = createFakeClient();
+  await setPasswordHashIfAbsent(client, "Taro", "scrypt$abcd$1234");
+  const didSetAgain = await setPasswordHashIfAbsent(client, "Taro", "scrypt$ffff$9999");
+  assert.equal(didSetAgain, false);
+  // 2回目の呼び出しでは値が書き換わっていないこと
   assert.equal(await getPasswordHash(client, "Taro"), "scrypt$abcd$1234");
 });

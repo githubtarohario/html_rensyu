@@ -50,6 +50,14 @@ async function setPasswordHash(client, id, hash) {
   await client.set(userPasswordKey(id), hash);
 }
 
+// 指定IDにパスワードハッシュがまだ存在しない場合のみ保存する（SET NXによる原子的操作）。
+// 新規登録時に同じIDへの同時リクエストが競合しても、先着の1件だけが登録に成功するようにする。
+// 戻り値は実際に保存できたかどうか（既に存在していた場合はfalseで、何も変更しない）。
+async function setPasswordHashIfAbsent(client, id, hash) {
+  const result = await client.set(userPasswordKey(id), hash, { nx: true });
+  return result !== null;
+}
+
 module.exports = {
   LEADERBOARD_KEY,
   userSolvedKey,
@@ -60,4 +68,5 @@ module.exports = {
   getLeaderboard,
   getPasswordHash,
   setPasswordHash,
+  setPasswordHashIfAbsent,
 };
