@@ -8,6 +8,10 @@ function userMetaKey(nickname) {
   return `user:${nickname}:meta`;
 }
 
+function userPasswordKey(id) {
+  return `user:${id}:passwordHash`;
+}
+
 // 問題に正解したことを記録する。同じ問題への再正解は得点を増やさない（冪等）。
 async function recordCorrectAnswer(client, nickname, problemId) {
   const added = await client.sadd(userSolvedKey(nickname), problemId);
@@ -36,11 +40,24 @@ async function getLeaderboard(client) {
     });
 }
 
+// 指定IDに保存されているパスワードハッシュを取得する。未登録なら null を返す。
+async function getPasswordHash(client, id) {
+  return client.get(userPasswordKey(id));
+}
+
+// 指定IDのパスワードハッシュを保存する。
+async function setPasswordHash(client, id, hash) {
+  await client.set(userPasswordKey(id), hash);
+}
+
 module.exports = {
   LEADERBOARD_KEY,
   userSolvedKey,
   userMetaKey,
+  userPasswordKey,
   recordCorrectAnswer,
   getUserInfo,
   getLeaderboard,
+  getPasswordHash,
+  setPasswordHash,
 };

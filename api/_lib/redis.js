@@ -33,6 +33,12 @@ function createRedisClient() {
     async hsetUpdatedAt(key, timestampMs) {
       await redis.hset(key, { updatedAt: timestampMs });
     },
+    async get(key) {
+      return redis.get(key);
+    },
+    async set(key, value) {
+      await redis.set(key, value);
+    },
   };
 }
 

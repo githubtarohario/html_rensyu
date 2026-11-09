@@ -1,10 +1,18 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { recordCorrectAnswer, userSolvedKey, getUserInfo, getLeaderboard } = require("../api/_lib/store");
+const {
+  recordCorrectAnswer,
+  userSolvedKey,
+  getUserInfo,
+  getLeaderboard,
+  getPasswordHash,
+  setPasswordHash,
+} = require("../api/_lib/store");
 
 function createFakeClient() {
   const sets = new Map();
   const sorted = new Map();
+  const strings = new Map();
   return {
     async sadd(key, member) {
       const s = sets.get(key) ?? new Set();
@@ -31,6 +39,12 @@ function createFakeClient() {
         .sort((a, b) => b.score - a.score);
     },
     async hsetUpdatedAt() {},
+    async get(key) {
+      return strings.get(key) ?? null;
+    },
+    async set(key, value) {
+      strings.set(key, value);
+    },
     _sets: sets,
   };
 }
@@ -104,4 +118,15 @@ test("同点はニックネームのアルファベット順でタイブレー�
     { nickname: "Alice", score: 1 },
     { nickname: "Bob", score: 1 },
   ]);
+});
+
+test("パスワードハッシュが未設定のユーザーはnullを返す", async () => {
+  const client = createFakeClient();
+  assert.equal(await getPasswordHash(client, "Taro"), null);
+});
+
+test("setPasswordHashで保存した値がgetPasswordHashで取得できる", async () => {
+  const client = createFakeClient();
+  await setPasswordHash(client, "Taro", "scrypt$abcd$1234");
+  assert.equal(await getPasswordHash(client, "Taro"), "scrypt$abcd$1234");
 });
