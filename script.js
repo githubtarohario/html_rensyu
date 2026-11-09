@@ -15,6 +15,7 @@
 
   const loginForm = document.getElementById("login-form");
   const nicknameInput = document.getElementById("nickname-input");
+  const passwordInput = document.getElementById("password-input");
   const loginError = document.getElementById("login-error");
   const currentUser = document.getElementById("current-user");
   const currentUserName = document.getElementById("current-user-name");
@@ -191,6 +192,7 @@
     currentUserName.textContent = "";
     currentScore.textContent = "0";
     nicknameInput.value = "";
+    passwordInput.value = "";
     hideLoginError();
     clearAllSolved();
   }
@@ -337,15 +339,46 @@
     }
   });
 
-  loginForm.addEventListener("submit", (e) => {
+  loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const normalized = normalizeNickname(nicknameInput.value);
     if (normalized === null) {
-      showLoginError("ニックネームは1〜20文字で入力してください。");
+      showLoginError("IDは1〜20文字で入力してください。");
       return;
     }
+    if (passwordInput.value === "") {
+      showLoginError("パスワードを入力してください。");
+      return;
+    }
+
+    let res;
+    try {
+      res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: normalized, password: passwordInput.value }),
+      });
+    } catch (err) {
+      showLoginError("通信エラーが発生しました");
+      return;
+    }
+
+    if (!res.ok) {
+      let message = "ログインに失敗しました";
+      try {
+        const data = await res.json();
+        if (data && data.error) message = data.error;
+      } catch (err) {
+        // レスポンスがJSONでない場合はデフォルトのメッセージを使う
+      }
+      showLoginError(message);
+      return;
+    }
+
+    hideLoginError();
     saveNickname(normalized);
     showLoggedInView(normalized);
+    passwordInput.value = "";
   });
 
   logoutBtn.addEventListener("click", () => {
