@@ -25,7 +25,10 @@
 
   let currentProblem = null;
 
-  const NICKNAME_STORAGE_KEY = "html-rensyu:nickname";
+  // パスワード導入前のニックネームのみ方式で使っていたキーとは別名にする。
+  // 旧キーに値が残っていても読み込まないことで、パスワード未確認のまま
+  // ログイン状態を復元してしまう問題を防ぐ（古いキーの値は移行せず、そのまま破棄する）。
+  const USER_ID_STORAGE_KEY = "html-rensyu:userId";
   const NICKNAME_MAX_LENGTH = 20;
 
   function storageKey(problem) {
@@ -44,7 +47,7 @@
 
   function getSavedNickname() {
     try {
-      return localStorage.getItem(NICKNAME_STORAGE_KEY);
+      return localStorage.getItem(USER_ID_STORAGE_KEY);
     } catch (e) {
       return null;
     }
@@ -52,7 +55,7 @@
 
   function saveNickname(name) {
     try {
-      localStorage.setItem(NICKNAME_STORAGE_KEY, name);
+      localStorage.setItem(USER_ID_STORAGE_KEY, name);
     } catch (e) {
       // 保存できない環境（プライベートモード等）では無視する
     }
@@ -60,7 +63,7 @@
 
   function clearNickname() {
     try {
-      localStorage.removeItem(NICKNAME_STORAGE_KEY);
+      localStorage.removeItem(USER_ID_STORAGE_KEY);
     } catch (e) {
       // 削除できない環境（プライベートモード等）では無視する
     }
@@ -350,6 +353,13 @@
       showLoginError("パスワードを入力してください。");
       return;
     }
+    // api/login.js と同じ基準（UTF-16コード単位数、つまりJSのstring.length）で
+    // 100文字を超えるかを判定する。サーバーに送る前に弾けば、英語のエラーが
+    // そのまま表示されることもない。
+    if (passwordInput.value.length > 100) {
+      showLoginError("パスワードは100文字以内で入力してください。");
+      return;
+    }
 
     let res;
     try {
@@ -367,7 +377,17 @@
       let message = "ログインに失敗しました";
       try {
         const data = await res.json();
-        if (data && data.error) message = data.error;
+        // "invalid id"・"invalid password"は英語のサーバー内部エラー文字列なので、
+        // そのまま表示せず日本語に変換する（通常はクライアント側の事前チェックで
+        // 弾かれるため、ここに来るのはチェック漏れがある場合のみ）。それ以外の
+        // エラー（IDまたはパスワードが違います、等）は既に日本語なのでそのまま使う。
+        if (data && data.error === "invalid password") {
+          message = "パスワードは1〜100文字で入力してください。";
+        } else if (data && data.error === "invalid id") {
+          message = "IDは1〜20文字で入力してください。";
+        } else if (data && data.error) {
+          message = data.error;
+        }
       } catch (err) {
         // レスポンスがJSONでない場合はデフォルトのメッセージを使う
       }
