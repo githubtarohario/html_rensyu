@@ -30,6 +30,8 @@ function highlightAttributes(attrText) {
 const KNOWN_TAGS = [
   "h1", "h2", "h3", "h4", "h5", "h6",
   "p", "br", "a", "img", "table", "tr", "td",
+  "ul", "ol", "li", "strong", "em", "div", "span",
+  "input", "button", "label", "form",
 ];
 
 function highlightHtml(code) {

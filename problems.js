@@ -117,4 +117,131 @@ const PROBLEMS = [
     answer:
       "<table>\n  <tr>\n    <td>名前</td>\n    <td>点数</td>\n  </tr>\n  <tr>\n    <td>太郎</td>\n    <td>80</td>\n  </tr>\n  <tr>\n    <td>花子</td>\n    <td>95</td>\n  </tr>\n</table>",
   },
+
+  // ===== リスト ul・ol・li =====
+  {
+    id: "ul-basic",
+    category: "リスト（ul・ol・li）",
+    title: "ulで箇条書きリストを作る",
+    description:
+      "&lt;ul&gt;の中に&lt;li&gt;を3つ作って、好きな項目を箇条書きで表示してください。",
+    starter: "",
+    answer: "<ul>\n  <li>項目1</li>\n  <li>項目2</li>\n  <li>項目3</li>\n</ul>",
+  },
+  {
+    id: "ol-basic",
+    category: "リスト（ul・ol・li）",
+    title: "olで番号付きリストを作る",
+    description:
+      "&lt;ol&gt;の中に&lt;li&gt;を2つ以上作って、番号付きのリストを表示してください。",
+    starter: "",
+    answer: "<ol>\n  <li>1番目</li>\n  <li>2番目</li>\n</ol>",
+  },
+  {
+    id: "list-nested",
+    category: "リスト（ul・ol・li）",
+    title: "リストを入れ子にする",
+    description:
+      "&lt;li&gt;の中にさらに&lt;ul&gt;を入れて、リストを入れ子（ネスト）にしてください。",
+    starter: "",
+    answer:
+      "<ul>\n  <li>親項目\n    <ul>\n      <li>子項目1</li>\n      <li>子項目2</li>\n    </ul>\n  </li>\n</ul>",
+  },
+
+  // ===== 文字装飾 strong・em =====
+  {
+    id: "strong-basic",
+    category: "文字装飾（strong・em）",
+    title: "strongで文字を強調する",
+    description:
+      "&lt;strong&gt;〜&lt;/strong&gt; を使って、文章の中の一部を強調してください。",
+    starter: "",
+    answer: "<p>これは<strong>重要</strong>な文章です。</p>",
+  },
+  {
+    id: "em-basic",
+    category: "文字装飾（strong・em）",
+    title: "emで文字を強調する",
+    description:
+      "&lt;em&gt;〜&lt;/em&gt; を使って、文章の中の一部を強調（イタリック）してください。",
+    starter: "",
+    answer: "<p>これは<em>強調</em>したい部分です。</p>",
+  },
+  {
+    id: "strong-em-combo",
+    category: "文字装飾（strong・em）",
+    title: "strongとemを両方使う",
+    description:
+      "1つの文章の中で、&lt;strong&gt;と&lt;em&gt;を両方使ってください。",
+    starter: "",
+    answer: "<p><strong>重要：</strong>これは<em>特に注意</em>してください。</p>",
+  },
+
+  // ===== レイアウトの基本 div・span =====
+  {
+    id: "div-basic",
+    category: "レイアウトの基本（div・span）",
+    title: "divで要素をグループ化する",
+    description:
+      "&lt;div&gt;の中に&lt;h3&gt;と&lt;p&gt;を入れて、見出しと段落を1つのグループにまとめてください。",
+    starter: "",
+    answer: "<div>\n  <h3>お知らせ</h3>\n  <p>本日は休業します。</p>\n</div>",
+  },
+  {
+    id: "span-basic",
+    category: "レイアウトの基本（div・span）",
+    title: "spanで文中の一部を囲む",
+    description:
+      "&lt;p&gt;の文章の中の一部だけを&lt;span&gt;で囲んでください。",
+    starter: "",
+    answer: "<p>これは<span>一部だけ</span>特別な文章です。</p>",
+  },
+  {
+    id: "div-span-combo",
+    category: "レイアウトの基本（div・span）",
+    title: "divの中にspanを複数入れる",
+    description:
+      "&lt;div&gt;の中に、&lt;span&gt;で囲んだ部分を2つ以上入れてください。",
+    starter: "",
+    answer: "<div>\n  <p><span>赤</span>と<span>青</span>があります。</p>\n</div>",
+  },
+
+  // ===== フォーム input・button・label =====
+  {
+    id: "input-basic",
+    category: "フォーム（input・button・label）",
+    title: "inputでテキスト入力欄を作る",
+    description:
+      '&lt;input type="text"&gt; を使って、テキスト入力欄を1つ作ってください。&lt;input&gt;には終了タグがありません。',
+    starter: "",
+    answer: '<input type="text">',
+  },
+  {
+    id: "button-basic",
+    category: "フォーム（input・button・label）",
+    title: "buttonでボタンを作る",
+    description:
+      "&lt;button&gt;〜&lt;/button&gt; を使って、好きな文字が書かれたボタンを作ってください。",
+    starter: "",
+    answer: "<button>送信</button>",
+  },
+  {
+    id: "label-input-combo",
+    category: "フォーム（input・button・label）",
+    title: "labelでinputに説明を付ける",
+    description:
+      "&lt;label&gt;の中に説明の文字と&lt;input&gt;を入れて、入力欄に説明を付けてください。",
+    starter: "",
+    answer: '<label>お名前: <input type="text"></label>',
+  },
+  {
+    id: "form-basic",
+    category: "フォーム（input・button・label）",
+    title: "formでまとめる",
+    description:
+      "&lt;form&gt;の中に&lt;label&gt;（&lt;input&gt;を含む）と&lt;button&gt;を入れて、1つの入力フォームを作ってください。",
+    starter: "",
+    answer:
+      '<form>\n  <label>お名前: <input type="text"></label>\n  <button>送信</button>\n</form>',
+  },
 ];
