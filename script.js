@@ -13,10 +13,191 @@
   const answerCode = document.getElementById("answer-code");
   const answerCodeContent = document.getElementById("answer-code-content");
 
+  const loginForm = document.getElementById("login-form");
+  const nicknameInput = document.getElementById("nickname-input");
+  const passwordInput = document.getElementById("password-input");
+  const loginError = document.getElementById("login-error");
+  const currentUser = document.getElementById("current-user");
+  const currentUserName = document.getElementById("current-user-name");
+  const currentScore = document.getElementById("current-score");
+  const logoutBtn = document.getElementById("logout-btn");
+  const leaderboardList = document.getElementById("leaderboard-list");
+
   let currentProblem = null;
+
+  // パスワード導入前のニックネームのみ方式で使っていたキーとは別名にする。
+  // 旧キーに値が残っていても読み込まないことで、パスワード未確認のまま
+  // ログイン状態を復元してしまう問題を防ぐ（古いキーの値は移行せず、そのまま破棄する）。
+  const USER_ID_STORAGE_KEY = "html-rensyu:userId";
+  const NICKNAME_MAX_LENGTH = 20;
 
   function storageKey(problem) {
     return "html-rensyu:" + problem.id;
+  }
+
+  // サーバー側（api/_lib/nickname.js）のnormalizeNicknameと同じルール。
+  // 前後の空白を除去し、空または20文字を超える場合はnullを返す。
+  function normalizeNickname(raw) {
+    if (typeof raw !== "string") return null;
+    const trimmed = raw.trim();
+    if (trimmed === "") return null;
+    if ([...trimmed].length > NICKNAME_MAX_LENGTH) return null;
+    return trimmed;
+  }
+
+  function getSavedNickname() {
+    try {
+      return localStorage.getItem(USER_ID_STORAGE_KEY);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function saveNickname(name) {
+    try {
+      localStorage.setItem(USER_ID_STORAGE_KEY, name);
+    } catch (e) {
+      // 保存できない環境（プライベートモード等）では無視する
+    }
+  }
+
+  function clearNickname() {
+    try {
+      localStorage.removeItem(USER_ID_STORAGE_KEY);
+    } catch (e) {
+      // 削除できない環境（プライベートモード等）では無視する
+    }
+  }
+
+  // --- サーバー連携（fetchラッパー） ---
+  // いずれも通信エラー時はnullを返す。UIはnullの場合そのまま何もしない
+  // （オフライン時でも練習自体は続けられるようにする）。
+
+  async function postScore(nickname, problemId) {
+    try {
+      const res = await fetch("/api/score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nickname: nickname, problemId: problemId }),
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function fetchMe(nickname) {
+    try {
+      const res = await fetch("/api/me?nickname=" + encodeURIComponent(nickname));
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function fetchLeaderboard() {
+    try {
+      const res = await fetch("/api/leaderboard");
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // --- 正解マーカー（サイドバー） ---
+
+  function findSidebarItem(problemId) {
+    // problemIdはサーバー（/api/me）から返る値であり、既知のID一覧と照合されていない
+    // （api/score.jsは任意の文字列を受け入れる設計）。セレクタ文字列として組み立てると
+    // "などを含む値でSyntaxErrorになるため、dataset比較で探す。
+    return Array.prototype.find.call(sidebar.querySelectorAll(".problem-item"), function (el) {
+      return el.dataset.problemId === problemId;
+    });
+  }
+
+  function markSolved(problemId) {
+    const el = findSidebarItem(problemId);
+    if (el) el.classList.add("solved");
+  }
+
+  function markSolvedList(problemIds) {
+    if (!Array.isArray(problemIds)) return;
+    problemIds.forEach(markSolved);
+  }
+
+  function clearAllSolved() {
+    sidebar.querySelectorAll(".problem-item.solved").forEach((el) => {
+      el.classList.remove("solved");
+    });
+  }
+
+  // --- ランキング表示 ---
+
+  function renderLeaderboard(entries) {
+    leaderboardList.innerHTML = "";
+    entries.forEach((entry) => {
+      const li = document.createElement("li");
+      li.className = "leaderboard-item";
+
+      const nameEl = document.createElement("span");
+      nameEl.className = "leaderboard-name";
+      nameEl.appendChild(document.createTextNode(entry.nickname));
+
+      const scoreEl = document.createElement("span");
+      scoreEl.className = "leaderboard-score";
+      scoreEl.appendChild(document.createTextNode(String(entry.score)));
+
+      li.appendChild(nameEl);
+      li.appendChild(scoreEl);
+      leaderboardList.appendChild(li);
+    });
+  }
+
+  async function refreshLeaderboard() {
+    const board = await fetchLeaderboard();
+    if (!board) return;
+    renderLeaderboard(board);
+  }
+
+  // ログイン中のニックネームの得点・正解済み問題をサーバーから復元する
+  async function syncUserState(nickname) {
+    const info = await fetchMe(nickname);
+    if (!info) return;
+    currentScore.textContent = String(info.score);
+    clearAllSolved();
+    markSolvedList(info.solvedProblems);
+  }
+
+  function showLoginError(message) {
+    loginError.textContent = message;
+    loginError.classList.remove("hidden");
+  }
+
+  function hideLoginError() {
+    loginError.textContent = "";
+    loginError.classList.add("hidden");
+  }
+
+  function showLoggedInView(nickname) {
+    loginForm.classList.add("hidden");
+    currentUser.classList.remove("hidden");
+    currentUserName.textContent = nickname;
+    currentScore.textContent = "0";
+    syncUserState(nickname);
+  }
+
+  function showLoggedOutView() {
+    currentUser.classList.add("hidden");
+    loginForm.classList.remove("hidden");
+    currentUserName.textContent = "";
+    currentScore.textContent = "0";
+    nicknameInput.value = "";
+    passwordInput.value = "";
+    hideLoginError();
+    clearAllSolved();
   }
 
   function loadSavedCode(problem) {
@@ -41,10 +222,24 @@
     codeHighlightCode.innerHTML = highlightHtml(codeInput.value) + "\n";
   }
 
-  function runPreview() {
+  async function runPreview() {
     preview.srcdoc = codeInput.value;
-    if (currentProblem) {
-      saveCode(currentProblem, codeInput.value);
+    if (!currentProblem) return;
+
+    saveCode(currentProblem, codeInput.value);
+
+    const nickname = getSavedNickname();
+    if (
+      nickname &&
+      typeof checkAnswer === "function" &&
+      checkAnswer(currentProblem.id, codeInput.value) === true
+    ) {
+      const result = await postScore(nickname, currentProblem.id);
+      if (result) {
+        currentScore.textContent = String(result.score);
+        markSolved(currentProblem.id);
+        refreshLeaderboard();
+      }
     }
   }
 
@@ -102,6 +297,7 @@
       const itemEl = document.createElement("button");
       itemEl.type = "button";
       itemEl.className = "problem-item";
+      itemEl.dataset.problemId = problem.id;
       itemEl.textContent = problem.title;
       itemEl.addEventListener("click", () => selectProblem(problem, itemEl));
       sidebar.appendChild(itemEl);
@@ -146,10 +342,83 @@
     }
   });
 
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const normalized = normalizeNickname(nicknameInput.value);
+    if (normalized === null) {
+      showLoginError("IDは1〜20文字で入力してください。");
+      return;
+    }
+    if (passwordInput.value === "") {
+      showLoginError("パスワードを入力してください。");
+      return;
+    }
+    // api/login.js と同じ基準（UTF-16コード単位数、つまりJSのstring.length）で
+    // 100文字を超えるかを判定する。サーバーに送る前に弾けば、英語のエラーが
+    // そのまま表示されることもない。
+    if (passwordInput.value.length > 100) {
+      showLoginError("パスワードは100文字以内で入力してください。");
+      return;
+    }
+
+    let res;
+    try {
+      res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: normalized, password: passwordInput.value }),
+      });
+    } catch (err) {
+      showLoginError("通信エラーが発生しました");
+      return;
+    }
+
+    if (!res.ok) {
+      let message = "ログインに失敗しました";
+      try {
+        const data = await res.json();
+        // "invalid id"・"invalid password"は英語のサーバー内部エラー文字列なので、
+        // そのまま表示せず日本語に変換する（通常はクライアント側の事前チェックで
+        // 弾かれるため、ここに来るのはチェック漏れがある場合のみ）。それ以外の
+        // エラー（IDまたはパスワードが違います、等）は既に日本語なのでそのまま使う。
+        if (data && data.error === "invalid password") {
+          message = "パスワードは1〜100文字で入力してください。";
+        } else if (data && data.error === "invalid id") {
+          message = "IDは1〜20文字で入力してください。";
+        } else if (data && data.error) {
+          message = data.error;
+        }
+      } catch (err) {
+        // レスポンスがJSONでない場合はデフォルトのメッセージを使う
+      }
+      showLoginError(message);
+      return;
+    }
+
+    hideLoginError();
+    saveNickname(normalized);
+    showLoggedInView(normalized);
+    passwordInput.value = "";
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    clearNickname();
+    showLoggedOutView();
+  });
+
   buildSidebar();
+
+  const savedNickname = getSavedNickname();
+  if (savedNickname) {
+    showLoggedInView(savedNickname);
+  } else {
+    showLoggedOutView();
+  }
 
   if (PROBLEMS.length > 0) {
     const firstItem = sidebar.querySelector(".problem-item");
     selectProblem(PROBLEMS[0], firstItem);
   }
+
+  refreshLeaderboard();
 })();

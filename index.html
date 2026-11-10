@@ -9,8 +9,27 @@
 <body>
 
 <header class="app-header">
-  <h1>HTML練習サイト</h1>
-  <p class="subtitle">問題を選んで、HTMLタグを書いて「実行」すると結果が確認できます</p>
+  <div class="app-header-main">
+    <h1>HTML練習サイト</h1>
+    <p class="subtitle">問題を選んで、HTMLタグを書いて「実行」すると結果が確認できます</p>
+  </div>
+
+  <div class="header-login">
+    <form id="login-form" class="login-form">
+      <input type="text" id="nickname-input" class="nickname-input" placeholder="IDを入力" autocomplete="username">
+      <input type="password" id="password-input" class="nickname-input" placeholder="パスワード" autocomplete="current-password">
+      <button type="submit" class="btn btn-primary">ログイン</button>
+      <p id="login-error" class="login-error hidden"></p>
+    </form>
+
+    <div id="current-user" class="current-user hidden">
+      <span class="current-user-label">ログイン中:</span>
+      <span id="current-user-name" class="current-user-name"></span>
+      <span class="current-score-label">得点:</span>
+      <span id="current-score" class="current-score">0</span>
+      <button id="logout-btn" class="btn">ログアウト</button>
+    </div>
+  </div>
 </header>
 
 <div class="app-layout">
@@ -57,10 +76,18 @@
     </section>
 
   </main>
+
+  <aside class="leaderboard-panel">
+    <h2 class="leaderboard-title">ランキング</h2>
+    <ul id="leaderboard-list" class="leaderboard-list">
+      <!-- ランキングはscript.jsが自動生成 -->
+    </ul>
+  </aside>
 </div>
 
 <script src="problems.js"></script>
 <script src="highlight.js"></script>
+<script src="checker.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

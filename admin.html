@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理画面 - HTML練習サイト</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .admin-page {
+    max-width: 480px;
+    margin: 40px auto;
+    padding: 0 16px;
+  }
+  .admin-login-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .admin-login-form input {
+    flex: 1;
+  }
+  .leaderboard-panel {
+    width: auto;
+    position: static;
+  }
+</style>
+</head>
+<body>
+
+<div class="admin-page">
+  <h1>管理画面：得点一覧</h1>
+
+  <form id="admin-login-form" class="admin-login-form">
+    <input type="password" id="admin-password-input" placeholder="パスワード">
+    <button type="submit" class="btn btn-primary">表示</button>
+  </form>
+  <p id="admin-error" class="login-error hidden"></p>
+
+  <aside class="leaderboard-panel hidden" id="admin-leaderboard-panel">
+    <h2 class="leaderboard-title">ID / 得点</h2>
+    <ul class="leaderboard-list" id="admin-leaderboard-list"></ul>
+  </aside>
+</div>
+
+<script src="adminScript.js"></script>
+</body>
+</html>

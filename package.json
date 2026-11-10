@@ -1,0 +1,10 @@
+{
+  "name": "html-rensyu",
+  "private": true,
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\""
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.41.0"
+  }
+}
