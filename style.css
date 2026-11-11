@@ -101,14 +101,21 @@ body {
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  position: relative;
 }
 
 .admin-section {
-  margin: 0 24px 20px;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 360px;
   background: var(--color-panel);
   border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 16px 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 20;
 }
 
 .admin-section-title {
