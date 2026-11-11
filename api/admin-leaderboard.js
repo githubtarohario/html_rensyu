@@ -1,6 +1,6 @@
 const { createRedisClient } = require("./_lib/redis");
 const { getLeaderboard } = require("./_lib/store");
-const { isCorrectPassword } = require("./_lib/adminAuth");
+const { isCorrectAdminCredentials } = require("./_lib/adminAuth");
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
@@ -10,8 +10,8 @@ module.exports = async (req, res) => {
 
   const body = req.body ?? {};
 
-  if (!isCorrectPassword(body.password, process.env.ADMIN_PASSWORD)) {
-    res.status(401).json({ error: "invalid password" });
+  if (!isCorrectAdminCredentials(body.id, body.password)) {
+    res.status(401).json({ error: "invalid credentials" });
     return;
   }
 

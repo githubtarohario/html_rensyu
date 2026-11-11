@@ -97,6 +97,41 @@ body {
   color: var(--color-primary-dark);
 }
 
+.header-admin {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.admin-section {
+  margin: 0 24px 20px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.admin-section-title {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.admin-login-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.admin-error {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: #c62828;
+}
+
+.admin-leaderboard-list {
+  max-width: 480px;
+}
+
 .app-layout {
   display: flex;
   align-items: flex-start;

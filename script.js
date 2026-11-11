@@ -23,6 +23,14 @@
   const logoutBtn = document.getElementById("logout-btn");
   const leaderboardList = document.getElementById("leaderboard-list");
 
+  const adminToggleBtn = document.getElementById("admin-toggle-btn");
+  const adminSection = document.getElementById("admin-section");
+  const adminLoginForm = document.getElementById("admin-login-form");
+  const adminIdInput = document.getElementById("admin-id-input");
+  const adminPasswordInput = document.getElementById("admin-password-input");
+  const adminError = document.getElementById("admin-error");
+  const adminLeaderboardList = document.getElementById("admin-leaderboard-list");
+
   let currentProblem = null;
 
   // パスワード導入前のニックネームのみ方式で使っていたキーとは別名にする。
@@ -404,6 +412,77 @@
   logoutBtn.addEventListener("click", () => {
     clearNickname();
     showLoggedOutView();
+  });
+
+  // --- 管理画面（得点一覧） ---
+
+  function showAdminError(message) {
+    adminError.textContent = message;
+    adminError.classList.remove("hidden");
+  }
+
+  function hideAdminError() {
+    adminError.textContent = "";
+    adminError.classList.add("hidden");
+  }
+
+  function renderAdminLeaderboard(board) {
+    adminLeaderboardList.innerHTML = "";
+    board.forEach((entry) => {
+      const li = document.createElement("li");
+      li.className = "leaderboard-item";
+
+      const nameEl = document.createElement("span");
+      nameEl.className = "leaderboard-name";
+      nameEl.appendChild(document.createTextNode(entry.nickname));
+
+      const scoreEl = document.createElement("span");
+      scoreEl.className = "leaderboard-score";
+      scoreEl.appendChild(document.createTextNode(String(entry.score)));
+
+      li.appendChild(nameEl);
+      li.appendChild(scoreEl);
+      adminLeaderboardList.appendChild(li);
+    });
+  }
+
+  adminToggleBtn.addEventListener("click", () => {
+    adminSection.classList.toggle("hidden");
+  });
+
+  adminLoginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    hideAdminError();
+
+    const id = adminIdInput.value;
+    const password = adminPasswordInput.value;
+
+    let res;
+    try {
+      res = await fetch("/api/admin-leaderboard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, password }),
+      });
+    } catch (err) {
+      showAdminError("通信エラーが発生しました");
+      return;
+    }
+
+    if (res.status === 401) {
+      showAdminError("IDまたはパスワードが違います");
+      adminLeaderboardList.innerHTML = "";
+      return;
+    }
+
+    if (!res.ok) {
+      showAdminError("エラーが発生しました");
+      adminLeaderboardList.innerHTML = "";
+      return;
+    }
+
+    const board = await res.json();
+    renderAdminLeaderboard(board);
   });
 
   buildSidebar();

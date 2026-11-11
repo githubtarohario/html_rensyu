@@ -1,24 +1,23 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { isCorrectPassword } = require("../api/_lib/adminAuth");
+const { isCorrectAdminCredentials } = require("../api/_lib/adminAuth");
 
-test("一致していればtrue", () => {
-  assert.equal(isCorrectPassword("1111", "1111"), true);
+test("ID・パスワードが両方一致すればtrue", () => {
+  assert.equal(isCorrectAdminCredentials("1111", "2222"), true);
 });
 
-test("不一致ならfalse", () => {
-  assert.equal(isCorrectPassword("2222", "1111"), false);
+test("IDが違えばfalse", () => {
+  assert.equal(isCorrectAdminCredentials("9999", "2222"), false);
 });
 
-test("ADMIN_PASSWORDが未設定（undefined）なら常にfalse", () => {
-  assert.equal(isCorrectPassword("1111", undefined), false);
+test("パスワードが違えばfalse", () => {
+  assert.equal(isCorrectAdminCredentials("1111", "9999"), false);
 });
 
-test("ADMIN_PASSWORDが空文字なら常にfalse（空文字どうしの一致を許さない）", () => {
-  assert.equal(isCorrectPassword("", ""), false);
+test("ID・パスワードどちらも違えばfalse", () => {
+  assert.equal(isCorrectAdminCredentials("9999", "9999"), false);
 });
 
-test("providedが文字列以外ならfalse", () => {
-  assert.equal(isCorrectPassword(undefined, "1111"), false);
-  assert.equal(isCorrectPassword(1111, "1111"), false);
+test("未入力（undefined）ならfalse", () => {
+  assert.equal(isCorrectAdminCredentials(undefined, undefined), false);
 });

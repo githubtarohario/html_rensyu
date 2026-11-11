@@ -30,6 +30,10 @@
       <button id="logout-btn" class="btn">ログアウト</button>
     </div>
   </div>
+
+  <div class="header-admin">
+    <button type="button" id="admin-toggle-btn" class="btn">⚙ 管理画面</button>
+  </div>
 </header>
 
 <div class="app-layout">
@@ -84,6 +88,17 @@
     </ul>
   </aside>
 </div>
+
+<section id="admin-section" class="admin-section hidden">
+  <h2 class="admin-section-title">管理画面：得点一覧</h2>
+  <form id="admin-login-form" class="admin-login-form">
+    <input type="text" id="admin-id-input" class="nickname-input" placeholder="管理者ID" autocomplete="username">
+    <input type="password" id="admin-password-input" class="nickname-input" placeholder="パスワード" autocomplete="current-password">
+    <button type="submit" class="btn btn-primary">表示</button>
+  </form>
+  <p id="admin-error" class="admin-error hidden"></p>
+  <ul id="admin-leaderboard-list" class="leaderboard-list admin-leaderboard-list"></ul>
+</section>
 
 <script src="problems.js"></script>
 <script src="highlight.js"></script>
